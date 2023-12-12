@@ -1,0 +1,118 @@
+***************KALYAN IDS CODE********************
+
+import random
+
+traffic_data = [
+    {"source": "192.168.1.1", "destination": "10.0.0.1", "port": 22},
+    {"source": "10.0.0.2", "destination": "192.168.1.2", "port": 80},
+    {"source": "unknown", "destination": "10.0.0.1", "port": 21},
+]
+
+def is_suspicious(packet):
+    return packet["source"] == "unknown"
+
+suspicious_packets = []
+
+for packet in traffic_data:
+    if is_suspicious(packet):
+        suspicious_packets.append(packet)
+
+def generate_alert(packet):
+    message = f"Suspicious packet detected:\n"
+    for key, value in packet.items():
+        message += f"{key}: {value}\n"
+    return message
+
+if not suspicious_packets:
+    print("No suspicious packets detected.")
+
+for packet in suspicious_packets:
+    alert_message = generate_alert(packet)
+    print(alert_message)
+
+    def log_alert(message):
+        with open("alerts.log", "a") as f:
+            f.write(message)
+
+for packet in suspicious_packets:
+    alert_message = generate_alert(packet)
+    log_alert(alert_message)
+
+
+
+
+***************PRACTICAL BOOK IDS CODE***********************
+
+
+
+//////******CLIENT***/////////
+
+import socket
+def main():
+    server_ip = '127.0.0.1'  
+    server_port = 8888       
+
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_socket.connect((server_ip, server_port))
+
+    message = "This is a test packet with malware."  
+
+    client_socket.send(message.encode('utf-8'))
+    print(f"Sent message to server: {message}")
+
+    client_socket.close()
+
+if __name__ == "__main__":
+    main()
+
+/////////********SERVER**************/////
+
+
+import socket
+import threading
+
+class IDS:
+    def __init__(self):
+        self.attack_signatures = ['malware', 'exploit', 'attack']
+        self.detected_attacks = []
+
+    def detect_attack(self, packet):
+        for signature in self.attack_signatures:
+            if signature in packet:
+                self.detected_attacks.append(signature)
+                print(f"Detected {signature} attack in packet: {packet}")
+
+def listen_for_traffic(ids):
+    host = '0.0.0.0'
+    port = 8888
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:  
+        server_socket.bind((host, port))
+        server_socket.listen(5)
+
+        print(f"Listening on {host}:{port} for incoming traffic...")
+
+        try:
+            while True:
+                client_socket, client_addr = server_socket.accept()
+                client_ip, client_port = client_addr  
+
+                print(f"Accepted connection from {client_ip}, client_port {client_port}")
+
+                packet = client_socket.recv(1024).decode('utf-8')
+                ids.detect_attack(packet)
+
+                accept_count = False
+                client_socket.close()
+
+        except KeyboardInterrupt:
+            print("Server stopping...")
+
+def main():
+    ids = IDS()
+
+    traffic_listener = threading.Thread(target=listen_for_traffic, args=(ids,))
+    traffic_listener.start()
+
+if __name__ == "__main__":
+    main()
